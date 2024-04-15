@@ -1,5 +1,4 @@
 import React, { forwardRef, useEffect, useRef, useState } from "react";
-import { useDragSelect } from "./../DraggableButton/DragSelectContext.tsx";
 
 const tags: number[] = [];
 for (let i = 1; i <= 100; i++) {
@@ -40,11 +39,13 @@ const Tag: React.FC<ITagProps> = forwardRef<HTMLDivElement, ITagProps>(
   }
 );
 
-const List: React.FC = () => {
+const BoxSelectList = () => {
   const [selected, setSelected] = useState<number[]>([]);
+  const [dragging, setDragging] = useState(false);
+  const startCoord = useRef({ x: 0, y: 0 });
+  const endCoord = useRef({ x: 0, y: 0 });
   const elRefs = useRef<(HTMLDivElement | null)[]>([]);
   const targetRef = useRef<HTMLDivElement>(null);
-  const ds = useDragSelect();
 
   const handleClickTag = (text: number) => {
     if (!text) return;
@@ -60,30 +61,51 @@ const List: React.FC = () => {
     }
   };
 
-  // adding selectable elements
-  useEffect(() => {
-    const elements = elRefs.current as HTMLElement[];
-    if (!elements || !ds) return;
-    ds.addSelectables(elements);
-  }, [ds, elRefs]);
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    setDragging(true);
+    startCoord.current = { x: e.clientX, y: e.clientY };
+    endCoord.current = { x: e.clientX, y: e.clientY };
+  };
 
-  // subscribing to a callback
-  useEffect(() => {
-    if (!ds) return;
-    const id = ds.subscribe("DS:end", (e) => {
-      if (e.items.length) {
-        setSelected(e.items.map((el) => Number(el.innerText.trim())));
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (dragging) {
+      endCoord.current = { x: e.clientX, y: e.clientY };
+      selectElements();
+    }
+  };
+
+  const handleMouseUp = () => {
+    setDragging(false);
+  };
+
+  const selectElements = () => {
+    const elements = elRefs.current as HTMLElement[];
+    const startX = Math.min(startCoord.current.x, endCoord.current.x);
+    const endX = Math.max(startCoord.current.x, endCoord.current.x);
+    const startY = Math.min(startCoord.current.y, endCoord.current.y);
+    const endY = Math.max(startCoord.current.y, endCoord.current.y);
+
+    const newSelected: number[] = [];
+    elements.forEach((el, idx) => {
+      const rect = el.getBoundingClientRect();
+      const isInSelection =
+        rect.left <= endX &&
+        rect.right >= startX &&
+        rect.top <= endY &&
+        rect.bottom >= startY;
+      if (isInSelection) {
+        newSelected.push(Number(el.innerText.trim()));
       }
     });
 
-    return () => ds.unsubscribe("DS:end", id!);
-  }, [ds]);
+    setSelected(newSelected);
+  };
 
   return (
     <div
       style={{ display: "flex", flexDirection: "column", textAlign: "center" }}
     >
-      <h4>Box select and Draggable</h4>
+      <h4>Box select Only</h4>
       <div
         ref={targetRef}
         style={{
@@ -91,11 +113,15 @@ const List: React.FC = () => {
           flexWrap: "wrap",
           width: "800px",
           margin: "0 auto",
-          border: "1px, solid, #dedede",
+          border: "1px solid #dedede",
         }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
       >
         {tags.map((tag, idx) => (
           <Tag
+            key={tag}
             onClick={() => handleClickTag(tag)}
             active={selected.includes(tag)}
             ref={(el) => {
@@ -110,4 +136,4 @@ const List: React.FC = () => {
   );
 };
 
-export default List;
+export default BoxSelectList;
