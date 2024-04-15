@@ -6,10 +6,7 @@ const DraggableButton = () => {
   const ds = useDragSelect();
   const inputEl = useRef(null);
 
-  console.log("selected:", selected);
-
   const handleClickAway = () => {
-    console.log("handleClickAway clicked");
     setSelected(null);
   };
 
@@ -25,7 +22,6 @@ const DraggableButton = () => {
     if (!ds) return;
     const id = ds.subscribe("DS:end", (e) => {
       setSelected(e);
-      console.log(e);
     });
 
     return () => ds.unsubscribe("DS:end", id!);

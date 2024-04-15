@@ -114,6 +114,7 @@ const BoxSelectList = () => {
           width: "800px",
           margin: "0 auto",
           border: "1px solid #dedede",
+          padding: "20px",
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}

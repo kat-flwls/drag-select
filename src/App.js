@@ -9,7 +9,7 @@ const App = () => (
     <div style={{ padding: "20px"}}>
     <DraggableButton/>
     </div>
-    {/* <List/> */}
+    <List/>
     <div style={{ padding: "20px"}}>
     <BoxSelectList/>
     </div>
