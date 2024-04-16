@@ -11,8 +11,6 @@ const List: React.FC = () => {
   const targetRef = useRef<HTMLDivElement>(null);
   const ds = useDragSelect();
 
-  console.log("selected:", selected);
-
   useEffect(() => {
     const buttons = buttonRefs.current as HTMLButtonElement[];
     if (!buttons || !ds) return;

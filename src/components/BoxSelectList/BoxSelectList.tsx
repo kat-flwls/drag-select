@@ -1,10 +1,11 @@
 import React, { useRef, useState } from "react";
 import Tag from "../Tag/Tag.tsx";
 
-const tags: number[] = [];
-for (let i = 1; i <= 100; i++) {
-  tags.push(i);
-}
+// Define tags with unique IDs and labels
+const tags = Array.from({ length: 100 }, (_, i) => ({
+  id: i + 1,
+  label: (i + 1).toString().padStart(3, "0"),
+}));
 
 const BoxSelectList = () => {
   const [selected, setSelected] = useState<number[]>([]);
@@ -14,17 +15,14 @@ const BoxSelectList = () => {
   const elRefs = useRef<(HTMLDivElement | null)[]>([]);
   const targetRef = useRef<HTMLDivElement>(null);
 
-  const handleClickTag = (text: number) => {
-    if (!text) return;
-    const idx = selected.indexOf(text);
+  console.log("selected:", selected);
+
+  const handleClickTag = (id: number) => {
+    const idx = selected.indexOf(id);
     if (idx > -1) {
-      setSelected((prev) => {
-        const copy = [...prev];
-        copy.splice(idx, 1);
-        return copy;
-      });
+      setSelected((prev) => prev.filter((item) => item !== id));
     } else {
-      setSelected((prev) => [...prev, text]);
+      setSelected((prev) => [...prev, id]);
     }
   };
 
@@ -61,7 +59,7 @@ const BoxSelectList = () => {
         rect.top <= endY &&
         rect.bottom >= startY;
       if (isInSelection) {
-        newSelected.push(Number(el.innerText.trim()));
+        newSelected.push(Number(el.id));
       }
     });
 
@@ -89,14 +87,15 @@ const BoxSelectList = () => {
       >
         {tags.map((tag, idx) => (
           <Tag
-            key={tag}
-            onClick={() => handleClickTag(tag)}
-            active={selected.includes(tag)}
+            key={tag.id}
+            onClick={() => handleClickTag(tag.id)}
+            active={selected.includes(tag.id)}
             ref={(el) => {
               elRefs.current[idx] = el;
             }}
+            id={tag.id}
           >
-            {tag.toString().padStart(3, "0")}
+            {tag.label}
           </Tag>
         ))}
       </div>
