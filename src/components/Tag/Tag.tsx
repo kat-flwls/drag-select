@@ -4,7 +4,7 @@ import { FC, forwardRef } from "react";
 interface ITagProps {
   onClick: () => void;
   active: boolean;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   ref: any;
 }
 

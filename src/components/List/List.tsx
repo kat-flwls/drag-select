@@ -1,83 +1,40 @@
 import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { useDragSelect } from "./../DraggableButton/DragSelectContext.tsx";
 
-const tags: number[] = [];
-for (let i = 1; i <= 100; i++) {
-  tags.push(i);
-}
-
-interface ITagProps {
-  onClick: () => void;
-  active: boolean;
-  children: React.ReactNode;
-  ref: any;
-}
-
-const Tag: React.FC<ITagProps> = forwardRef<HTMLDivElement, ITagProps>(
-  ({ onClick, active, children }, ref) => {
-    return (
-      <div
-        onClick={onClick}
-        ref={ref}
-        style={{
-          width: "26px",
-          height: "40px",
-          border: "1px solid #ebeef5",
-          boxSizing: "border-box",
-          borderRadius: "6px",
-          fontSize: "12px",
-          marginLeft: "6px",
-          marginBottom: "8px",
-          lineHeight: "40px",
-          userSelect: "none",
-          color: active ? "white" : "",
-          backgroundColor: active ? "#25b856" : "#f5f7fa",
-        }}
-      >
-        {children}
-      </div>
-    );
-  }
-);
+const generateUniqueId = () => {
+  return Math.random().toString(36).substr(2, 9);
+};
 
 const List: React.FC = () => {
-  const [selected, setSelected] = useState<number[]>([]);
-  const elRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const targetRef = useRef<HTMLDivElement>(null);
   const ds = useDragSelect();
 
-  const handleClickTag = (text: number) => {
-    if (!text) return;
-    const idx = selected.indexOf(text);
-    if (idx > -1) {
-      setSelected((prev) => {
-        const copy = [...prev];
-        copy.splice(idx, 1);
-        return copy;
-      });
-    } else {
-      setSelected((prev) => [...prev, text]);
-    }
-  };
+  console.log("selected:", selected);
 
-  // adding selectable elements
   useEffect(() => {
-    const elements = elRefs.current as HTMLElement[];
-    if (!elements || !ds) return;
-    ds.addSelectables(elements);
-  }, [ds, elRefs]);
+    const buttons = buttonRefs.current as HTMLButtonElement[];
+    if (!buttons || !ds) return;
+    ds.addSelectables(buttons);
+  }, [ds, buttonRefs]);
 
-  // subscribing to a callback
   useEffect(() => {
     if (!ds) return;
     const id = ds.subscribe("DS:end", (e) => {
       if (e.items.length) {
-        setSelected(e.items.map((el) => Number(el.innerText.trim())));
+        setSelected(e.items.map((el) => el.id));
       }
     });
 
     return () => ds.unsubscribe("DS:end", id!);
   }, [ds]);
+
+  const handleClickButton = (id: string) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
 
   return (
     <div
@@ -91,19 +48,40 @@ const List: React.FC = () => {
           flexWrap: "wrap",
           width: "800px",
           margin: "0 auto",
-          border: "1px, solid, #dedede",
+          border: "1px solid #dedede",
         }}
       >
-        {tags.map((tag, idx) => (
-          <Tag
-            onClick={() => handleClickTag(tag)}
-            active={selected.includes(tag)}
+        {[...Array(5)].map((_, idx) => (
+          <button
+            key={idx}
+            id={generateUniqueId()}
+            onClick={() => handleClickButton(buttonRefs.current[idx]?.id ?? "")}
+            style={{
+              width: "100px",
+              height: "40px",
+              border: "1px solid #ebeef5",
+              boxSizing: "border-box",
+              borderRadius: "6px",
+              fontSize: "12px",
+              marginLeft: "6px",
+              marginBottom: "8px",
+              lineHeight: "40px",
+              userSelect: "none",
+              color: selected.includes(buttonRefs.current[idx]?.id ?? "")
+                ? "white"
+                : "",
+              backgroundColor: selected.includes(
+                buttonRefs.current[idx]?.id ?? ""
+              )
+                ? "#25b856"
+                : "#f5f7fa",
+            }}
             ref={(el) => {
-              elRefs.current[idx] = el;
+              buttonRefs.current[idx] = el;
             }}
           >
-            {tag.toString().padStart(3, "0")}
-          </Tag>
+            {`Button ${idx + 1}`}
+          </button>
         ))}
       </div>
     </div>
